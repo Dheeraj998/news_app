@@ -7,6 +7,7 @@ import 'package:news_app/controller/news_controller.dart';
 import 'package:news_app/core/utils/constants/colors.dart';
 import 'package:news_app/core/utils/custom_print.dart';
 import 'package:news_app/model/top_news_model/top_news_model.dart';
+import 'package:news_app/view/detail_page.dart';
 import 'package:news_app/view/widgets/all_news_listtile_widget.dart';
 import 'package:news_app/view/widgets/common_text.dart';
 import 'package:news_app/view/widgets/topnews_listtile_widget.dart';
@@ -58,7 +59,14 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ListView.separated(
             itemBuilder: (context, index) {
-              return AllNewsListTileWidget(newsModel: list[index]);
+              return AllNewsListTileWidget(
+                  onTap: () {
+                    Navigator.of(context).push(SlideUpPageRoute(
+                        builder: (context) => DetailsPage(
+                              articlesModel: list[index],
+                            )));
+                  },
+                  newsModel: list[index]);
             },
             separatorBuilder: (context, index) => const SizedBox(height: 10),
             itemCount: list.length),
