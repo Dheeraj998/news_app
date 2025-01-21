@@ -20,9 +20,8 @@ class NewsController extends GetxController {
 
   TopNewsListModel? topNewsModel;
   Future<APIResponse?> getTopHeadLinesNewsApiFn() async {
-    customLog("ggg ${dotenv.env['API_KEY']}");
     topHeadLinesApiResponse = APIResponse(data: null, loading: true);
-    update();
+    update(['top-news']);
     try {
       final response = await HttpApiService().apiRequest(
           withToken: true,
@@ -31,7 +30,7 @@ class NewsController extends GetxController {
       if (response?.statusCode == 200 || response?.statusCode == 201) {
         // customLog(".>>>>> response ${response?.body}");
         topNewsModel = TopNewsListModel.fromJson(json.decode(response!.body));
-        customLog("******8${response?.body}");
+        // customLog("******8${response?.body}");
 
         topHeadLinesApiResponse = topHeadLinesApiResponse?.copyWith(
             // message: jsonDecode(response!.body)['message'] ?? '',
@@ -55,7 +54,50 @@ class NewsController extends GetxController {
           message: 'Something went wrong',
           status: APIstatus.onError);
     }
-    update();
+    update(['top-news']);
     return topHeadLinesApiResponse;
+  }
+
+  TopNewsListModel? allNewsModel;
+  APIResponse? allNewsApiResponse;
+  Future<APIResponse?> getAllNewsApiFn({String? query}) async {
+    allNewsApiResponse = APIResponse(data: null, loading: true);
+    update();
+    try {
+      final response = await HttpApiService().apiRequest(
+          withToken: true,
+          url:
+              "${ApiUrl.allNewsEndPoint}?q=$query&apiKey=${dotenv.env['API_KEY']}",
+          method: 'get');
+      // customLog(".>>>>> response ${response?.body}");
+
+      if (response?.statusCode == 200 || response?.statusCode == 201) {
+        allNewsModel = TopNewsListModel.fromJson(json.decode(response!.body));
+        // customLog("******8${response?.body}");
+
+        allNewsApiResponse = allNewsApiResponse?.copyWith(
+            // message: jsonDecode(response!.body)['message'] ?? '',
+            loading: false,
+            status: APIstatus.onSuccess);
+      } else {
+        allNewsApiResponse = allNewsApiResponse?.copyWith(
+            loading: false,
+            message: jsonDecode(response!.body)['message'] ?? '',
+            status: APIstatus.onError);
+      }
+    } on SocketException catch (_) {
+      allNewsApiResponse = allNewsApiResponse?.copyWith(
+          loading: false,
+          message: 'No internet available',
+          status: APIstatus.onNetworkError);
+    } catch (e) {
+      customLog("________ ${e.toString()}");
+      allNewsApiResponse = allNewsApiResponse?.copyWith(
+          loading: false,
+          message: 'Something went wrong',
+          status: APIstatus.onError);
+    }
+    update();
+    return allNewsApiResponse;
   }
 }

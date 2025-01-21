@@ -5,8 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:news_app/controller/news_controller.dart';
 import 'package:news_app/core/utils/constants/colors.dart';
+import 'package:news_app/core/utils/custom_print.dart';
 import 'package:news_app/model/top_news_model/top_news_model.dart';
+import 'package:news_app/view/widgets/all_news_listtile_widget.dart';
 import 'package:news_app/view/widgets/common_text.dart';
+import 'package:news_app/view/widgets/topnews_listtile_widget.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,7 +22,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
-    Get.find<NewsController>().getTopHeadLinesNewsApiFn();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.find<NewsController>().getTopHeadLinesNewsApiFn();
+      Get.find<NewsController>().getAllNewsApiFn();
+    });
     super.initState();
   }
 
@@ -36,31 +43,38 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 10),
           _topNewsWidget(),
           const SizedBox(height: 10),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: CommonText(
-              text: "All News",
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          _allNewsTitle(),
           const SizedBox(height: 10),
-
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ListView.separated(
-                itemBuilder: (context, index) {
-                  return Container(child: CommonText(text: 'ss'));
-                },
-                separatorBuilder: (context, index) => SizedBox(
-                      height: 10,
-                    ),
-                itemCount: 40),
-          ))
+          _allNewsWidget()
         ],
       ),
     ));
+  }
+
+  Expanded _allNewsWidget() {
+    return Expanded(child: GetBuilder<NewsController>(builder: (news) {
+      List<ArticlesModel> list = news.allNewsModel?.articles?.toList() ?? [];
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: ListView.separated(
+            itemBuilder: (context, index) {
+              return AllNewsListTileWidget(newsModel: list[index]);
+            },
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
+            itemCount: list.length),
+      );
+    }));
+  }
+
+  Padding _allNewsTitle() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: CommonText(
+        text: "All News",
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+      ),
+    );
   }
 
   Padding _headTittle() {
@@ -124,66 +138,71 @@ class _HomePageState extends State<HomePage> {
   }
 
   GetBuilder<NewsController> _topNewsWidget() {
-    return GetBuilder<NewsController>(builder: (data) {
-      List<ArticlesModel>? topNewsList =
-          data.topNewsModel?.articles?.toList() ?? [];
-      return SizedBox(
-          height: 270,
-          child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 300,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.lightBlue.withOpacity(.05)),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(5),
-                        child: SizedBox(
-                          height: 140,
-                          width: 300,
-                          child: Image.network(
-                            height: 160,
-                            width: 300,
-                            fit: BoxFit.cover,
-                            topNewsList[index].urlToImage ?? "",
-                            errorBuilder: (context, error, stackTrace) =>
-                                Image.network(
-                                    height: 160,
-                                    width: 300,
-                                    fit: BoxFit.cover,
-                                    'https://media.istockphoto.com/id/1177502660/photo/young-woman-reading-the-news-on-a-modern-tablet-computer-while-sitting-in-her-living-room.jpg?s=1024x1024&w=is&k=20&c=lcFzelAHLx4AssYinkhrKgYmor33U2BsfJ8yX_DD2V8='),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      CommonText(
-                        text: topNewsList[index].title ?? "",
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        maxLines: 3,
-                        textOverflow: TextOverflow.ellipsis,
-                      ),
-                      Spacer(),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: CommonText(
-                            text: topNewsList[index].publishedAt == null
-                                ? ""
-                                : DateFormat('MMM dd,yyyy')
-                                    .format(topNewsList[index].publishedAt!)),
-                      )
-                    ],
+    return GetBuilder<NewsController>(
+        id: 'top-news',
+        builder: (data) {
+          List<ArticlesModel>? topNewsList =
+              data.topNewsModel?.articles?.toList() ?? [];
+          return data.topHeadLinesApiResponse?.loading == true
+              ? SizedBox(
+                  height: 270,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 30,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 20),
+                    itemBuilder: (context, index) {
+                      return Shimmer.fromColors(
+                          baseColor: Colors.blueGrey.withOpacity(.1),
+                          highlightColor: Colors.grey[100]!,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                      color: Theme.of(context).primaryColor,
+                                      borderRadius: BorderRadius.circular(7)),
+                                  height: 140,
+                                  width: 300,
+                                ),
+                                const SizedBox(height: 10),
+                                Container(
+                                  height: 10,
+                                  // width: double.maxFinite,
+                                  color: Theme.of(context).primaryColor,
+                                  child: const CommonText(
+                                      text:
+                                          "-------------------------------------------------"),
+                                ),
+                                const SizedBox(height: 5),
+                                Container(
+                                  height: 10,
+                                  // width: double.maxFinite,
+                                  color: Theme.of(context).primaryColor,
+                                  child: const CommonText(
+                                      text:
+                                          "--------------------------------------------"),
+                                )
+                              ],
+                            ),
+                          ));
+                    },
                   ),
-                );
-              },
-              separatorBuilder: (context, index) => SizedBox(width: 10),
-              itemCount: topNewsList.length));
-    });
+                )
+              : SizedBox(
+                  height: 270,
+                  child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, index) {
+                        return TopNewsListTileWidget(
+                            topNews: topNewsList[index]);
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 10),
+                      itemCount: topNewsList.length));
+        });
   }
 }
