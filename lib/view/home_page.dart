@@ -4,6 +4,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:news_app/controller/news_controller.dart';
+import 'package:news_app/core/api_service/http_response.dart';
 import 'package:news_app/core/utils/constants/colors.dart';
 import 'package:news_app/core/utils/custom_print.dart';
 import 'package:news_app/model/top_news_model/top_news_model.dart';
@@ -55,22 +56,73 @@ class _HomePageState extends State<HomePage> {
   Expanded _allNewsWidget() {
     return Expanded(child: GetBuilder<NewsController>(builder: (news) {
       List<ArticlesModel> list = news.allNewsModel?.articles?.toList() ?? [];
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: ListView.separated(
-            itemBuilder: (context, index) {
-              return AllNewsListTileWidget(
-                  onTap: () {
-                    Navigator.of(context).push(SlideUpPageRoute(
-                        builder: (context) => DetailsPage(
-                              articlesModel: list[index],
-                            )));
-                  },
-                  newsModel: list[index]);
-            },
-            separatorBuilder: (context, index) => const SizedBox(height: 10),
-            itemCount: list.length),
-      );
+      return news.allNewsApiResponse?.loading == true
+          ? ListView.separated(
+              itemCount: 30,
+              separatorBuilder: (context, index) => const SizedBox(width: 20),
+              itemBuilder: (context, index) {
+                return Shimmer.fromColors(
+                    baseColor: Colors.blueGrey.withOpacity(.1),
+                    highlightColor: Colors.grey[100]!,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20, right: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                borderRadius: BorderRadius.circular(7)),
+                            height: 140,
+                            width: double.maxFinite,
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            height: 10,
+                            // width: double.maxFinite,
+                            color: Theme.of(context).primaryColor,
+                            child: const CommonText(
+                                text:
+                                    "--------------------------------------------"),
+                          ),
+                          const SizedBox(height: 5),
+                          Container(
+                            height: 10,
+                            // width: double.maxFinite,
+                            color: Theme.of(context).primaryColor,
+                            child: const CommonText(
+                                text:
+                                    "--------------------------------------------"),
+                          )
+                        ],
+                      ),
+                    ));
+              },
+            )
+          : news.allNewsApiResponse?.status == APIstatus.onNetworkError
+              ? const CommonText(text: "No internet found")
+              : news.allNewsApiResponse?.status == APIstatus.onError
+                  ? const CommonText(text: "Something wentwrong")
+                  : (list.isEmpty)
+                      ? const CommonText(text: "No news to show")
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: ListView.separated(
+                              itemBuilder: (context, index) {
+                                return AllNewsListTileWidget(
+                                    onTap: () {
+                                      Navigator.of(context)
+                                          .push(SlideUpPageRoute(
+                                              builder: (context) => DetailsPage(
+                                                    articlesModel: list[index],
+                                                  )));
+                                    },
+                                    newsModel: list[index]);
+                              },
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 10),
+                              itemCount: list.length),
+                        );
     }));
   }
 
@@ -182,7 +234,7 @@ class _HomePageState extends State<HomePage> {
                                   color: Theme.of(context).primaryColor,
                                   child: const CommonText(
                                       text:
-                                          "-------------------------------------------------"),
+                                          "---------------------------------------------"),
                                 ),
                                 const SizedBox(height: 5),
                                 Container(
@@ -199,18 +251,34 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                 )
-              : SizedBox(
-                  height: 270,
-                  child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        return TopNewsListTileWidget(
-                            topNews: topNewsList[index]);
-                      },
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 10),
-                      itemCount: topNewsList.length));
+              : data.topHeadLinesApiResponse?.status == APIstatus.onNetworkError
+                  ? const CommonText(text: "No internet found")
+                  : data.topHeadLinesApiResponse?.status == APIstatus.onError
+                      ? const CommonText(text: "Something wentwrong")
+                      : (topNewsList.isEmpty)
+                          ? const CommonText(text: "No news to show")
+                          : SizedBox(
+                              height: 270,
+                              child: ListView.separated(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index) {
+                                    return TopNewsListTileWidget(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                              SlideUpPageRoute(
+                                                  builder: (context) =>
+                                                      DetailsPage(
+                                                        articlesModel:
+                                                            topNewsList[index],
+                                                      )));
+                                        },
+                                        topNews: topNewsList[index]);
+                                  },
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(width: 10),
+                                  itemCount: topNewsList.length));
         });
   }
 }
