@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:news_app/controller/news_controller.dart';
 import 'package:news_app/core/api_service/http_response.dart';
 import 'package:news_app/core/utils/custom_print.dart';
@@ -74,50 +73,65 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          actions: [
-            GetBuilder<NewsController>(builder: (val) {
-              return val.queryy == null
-                  ? const SizedBox()
-                  : InkWell(
-                      onTap: () {
-                        _searchController.clear();
-                        FocusScope.of(context).unfocus();
-                      },
-                      child: const Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: CommonText(text: "Clear"),
-                      ),
-                    );
-            })
-          ],
-        ),
+        appBar: _appBar(context),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _searchController,
-                  onChanged: (query) {
-                    _onSearchChanged();
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Search',
-                    hintText: 'Type to search...',
-                    suffixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                _allNewsWidget()
-              ],
+          child: RefreshIndicator(
+            onRefresh: () async {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Get.find<NewsController>().getAllNewsApiFn(page: 1);
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  _textFieldWidget(),
+                  const SizedBox(height: 15),
+                  _allNewsWidget()
+                ],
+              ),
             ),
           ),
         ));
+  }
+
+  TextField _textFieldWidget() {
+    return TextField(
+      controller: _searchController,
+      onChanged: (query) {
+        _onSearchChanged();
+      },
+      decoration: InputDecoration(
+        labelText: 'Search',
+        hintText: 'Type to search...',
+        suffixIcon: const Icon(Icons.search),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  AppBar _appBar(BuildContext context) {
+    return AppBar(
+      actions: [
+        GetBuilder<NewsController>(builder: (val) {
+          return val.queryy == null
+              ? const SizedBox()
+              : InkWell(
+                  onTap: () {
+                    _searchController.clear();
+                    FocusScope.of(context).unfocus();
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: CommonText(text: "Clear"),
+                  ),
+                );
+        })
+      ],
+    );
   }
 
   Expanded _allNewsWidget() {
@@ -170,7 +184,20 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
           : news.allNewsApiResponse?.status == APIstatus.onNetworkError
               ? const Center(child: CommonText(text: "No internet found"))
               : news.allNewsApiResponse?.status == APIstatus.onError
-                  ? const Center(child: CommonText(text: "Something wentwrong"))
+                  ? Center(
+                      child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CommonText(text: "Something wentwrong"),
+                        const SizedBox(height: 5),
+                        ElevatedButton(
+                            onPressed: () {
+                              Get.find<NewsController>()
+                                  .getAllNewsApiFn(page: 1);
+                            },
+                            child: const CommonText(text: "Refresh"))
+                      ],
+                    ))
                   : (list.isEmpty)
                       ? const Center(child: CommonText(text: "No news to show"))
                       : ListView.separated(

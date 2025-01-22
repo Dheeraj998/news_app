@@ -50,7 +50,7 @@ class TopNewsListTileWidget extends StatelessWidget {
               maxLines: 3,
               textOverflow: TextOverflow.ellipsis,
             ),
-            Spacer(),
+            const Spacer(),
             Align(
               alignment: Alignment.centerRight,
               child: CommonText(
