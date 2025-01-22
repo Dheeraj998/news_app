@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:news_app/model/top_news_model/top_news_model.dart';
@@ -24,6 +26,16 @@ class TopNewsListTileWidget extends StatelessWidget {
             color: Colors.lightBlue.withOpacity(.05)),
         child: Column(
           children: [
+            // CachedNetworkImage(
+            //   imageUrl: topNews?.urlToImage ?? "", // eplace with your image URL
+            //   placeholder: (context, url) => const Center(
+            //       child: CupertinoActivityIndicator()), // While loading
+            //   errorWidget: (context, url, error) =>
+            //       const Icon(Icons.error), // On error
+            //   width: 300, // Set the width if needed
+            //   height: 140, // Set the height if needed
+            //   fit: BoxFit.cover, // Set the box fit
+            // ),
             ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: SizedBox(
