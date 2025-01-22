@@ -60,14 +60,23 @@ class NewsController extends GetxController {
 
   TopNewsListModel? allNewsModel;
   APIResponse? allNewsApiResponse;
-  Future<APIResponse?> getAllNewsApiFn({String? query}) async {
-    allNewsApiResponse = APIResponse(data: null, loading: true);
+  bool paginationLoader = false;
+  List<ArticlesModel> allNewsList = [];
+  String? queryy;
+  Future<APIResponse?> getAllNewsApiFn({String? query, int? page = 1}) async {
+    queryy = query;
+    if (page == 1) {
+      allNewsApiResponse = APIResponse(data: null, loading: true);
+      // allNewsModel = allNewsModel?.copyWith(articles: []);
+      allNewsList = [];
+    }
+    paginationLoader = true;
     update();
     try {
       final response = await HttpApiService().apiRequest(
           withToken: true,
           url:
-              "${ApiUrl.allNewsEndPoint}?q=$query&apiKey=${dotenv.env['API_KEY']}",
+              "${ApiUrl.allNewsEndPoint}?q=$query&page=$page&pageSize=20&apiKey=${dotenv.env['API_KEY']}",
           method: 'get');
       // customLog(".>>>>> response ${response?.body}");
 
@@ -75,6 +84,11 @@ class NewsController extends GetxController {
         allNewsModel = TopNewsListModel.fromJson(json.decode(response!.body));
         // customLog("******8${response?.body}");
 
+        List<ArticlesModel> list = allNewsList.toList() ?? [];
+
+        list.addAll(allNewsModel?.articles ?? []);
+
+        allNewsList = list;
         allNewsApiResponse = allNewsApiResponse?.copyWith(
             // message: jsonDecode(response!.body)['message'] ?? '',
             loading: false,
@@ -97,6 +111,7 @@ class NewsController extends GetxController {
           message: 'Something went wrong',
           status: APIstatus.onError);
     }
+    paginationLoader = false;
     update();
     return allNewsApiResponse;
   }

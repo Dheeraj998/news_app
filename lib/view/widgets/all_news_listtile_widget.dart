@@ -27,7 +27,7 @@ class AllNewsListTileWidget extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(5),
                 child: SizedBox(
-                  height: 80,
+                  height: 100,
                   width: double.maxFinite,
                   child: Image.network(
                     height: 80,

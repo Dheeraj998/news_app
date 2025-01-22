@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:news_app/controller/news_controller.dart';
@@ -8,6 +7,7 @@ import 'package:news_app/core/api_service/http_response.dart';
 import 'package:news_app/core/utils/constants/colors.dart';
 import 'package:news_app/core/utils/custom_print.dart';
 import 'package:news_app/model/top_news_model/top_news_model.dart';
+import 'package:news_app/view/all_news_page.dart';
 import 'package:news_app/view/detail_page.dart';
 import 'package:news_app/view/widgets/all_news_listtile_widget.dart';
 import 'package:news_app/view/widgets/common_text.dart';
@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
       return news.allNewsApiResponse?.loading == true
           ? ListView.separated(
               itemCount: 30,
-              separatorBuilder: (context, index) => const SizedBox(width: 20),
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
               itemBuilder: (context, index) {
                 return Shimmer.fromColors(
                     baseColor: Colors.blueGrey.withOpacity(.1),
@@ -127,12 +127,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   Padding _allNewsTitle() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: CommonText(
-        text: "All News",
-        fontSize: 17,
-        fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          const CommonText(
+            text: "All News",
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+          ),
+          const Spacer(),
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return const AllNewsScreen();
+                },
+              ));
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CommonText(
+                text: "See all",
+                fontSize: 14,
+                color: Colors.grey.withOpacity(.8),
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -150,7 +173,7 @@ class _HomePageState extends State<HomePage> {
           const Spacer(),
           CommonText(
             text: "See all",
-            fontSize: 13,
+            fontSize: 14,
             color: Colors.grey.withOpacity(.8),
             fontWeight: FontWeight.w400,
           ),
@@ -252,9 +275,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                 )
               : data.topHeadLinesApiResponse?.status == APIstatus.onNetworkError
-                  ? const CommonText(text: "No internet found")
+                  ? const SizedBox(
+                      height: 270,
+                      child:
+                          Center(child: CommonText(text: "No internet found")))
                   : data.topHeadLinesApiResponse?.status == APIstatus.onError
-                      ? const CommonText(text: "Something wentwrong")
+                      ? const SizedBox(
+                          height: 270,
+                          child: Center(
+                              child: CommonText(text: "Something wentwrong")))
                       : (topNewsList.isEmpty)
                           ? const CommonText(text: "No news to show")
                           : SizedBox(
