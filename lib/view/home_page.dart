@@ -171,11 +171,23 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.w600,
           ),
           const Spacer(),
-          CommonText(
-            text: "See all",
-            fontSize: 14,
-            color: Colors.grey.withOpacity(.8),
-            fontWeight: FontWeight.w400,
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return const AllNewsScreen();
+                },
+              ));
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CommonText(
+                text: "See all",
+                fontSize: 14,
+                color: Colors.grey.withOpacity(.8),
+                fontWeight: FontWeight.w400,
+              ),
+            ),
           ),
         ],
       ),
